@@ -18,11 +18,13 @@ public class Crime {
     private static final String JSON_SOLVED = "solved";
     private static final String JSON_DATE = "date";
     private static final String JSON_PHOTO = "photo";
+    private static final String JSON_SUSPECT = "suspect";
     private Photo mPhoto;
     private UUID mId;
     private String mTitle;
     private Date mDate;
     private boolean mSolved;
+    private String mSuspect;
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm", Locale.CHINA);
 
     public String getTitle() {
@@ -67,6 +69,15 @@ public class Crime {
         mPhoto = photo;
     }
 
+    public String getSuspect() {
+        return mSuspect;
+    }
+
+    public void setSuspect(String suspect) {
+        mSuspect = suspect;
+    }
+
+
     public Crime() {
         mId = UUID.randomUUID();
         mDate = new Date();
@@ -90,6 +101,9 @@ public class Crime {
         if (json.has(JSON_PHOTO)) {
             mPhoto = new Photo(json.getJSONObject(JSON_PHOTO));
         }
+        if (json.has(JSON_SUSPECT)) {
+            mSuspect = json.getString(JSON_SUSPECT);
+        }
     }
 
     /**
@@ -107,6 +121,7 @@ public class Crime {
         if (mPhoto != null) {
             json.put(JSON_PHOTO, mPhoto.toJSON());
         }
+        json.put(JSON_SUSPECT, mSuspect);
         return json;
     }
 }
