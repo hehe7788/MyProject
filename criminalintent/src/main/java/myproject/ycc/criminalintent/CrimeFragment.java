@@ -4,6 +4,8 @@ package myproject.ycc.criminalintent;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -62,6 +65,7 @@ public class CrimeFragment extends Fragment {
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
     private String mExternalStoragePath = "/criminal_intent_camera";
+    private int screenOrientation;
 
 
     public static CrimeFragment newInstance(UUID crimeId) {
@@ -149,6 +153,14 @@ public class CrimeFragment extends Fragment {
             mPhotoButton.setEnabled(false);
         }
 
+        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Log.e(TAG, "landscape");
+            screenOrientation = 2;
+        } else if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Log.e(TAG, "portrait");
+            screenOrientation = 1;
+        }
+
         mPhotoView = (ImageView) v.findViewById(R.id.crime_imageView);
         mPhotoView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,9 +171,9 @@ public class CrimeFragment extends Fragment {
                 }
 
                 FragmentManager fm = getActivity().getSupportFragmentManager();
-                String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + p.getFileName();
+                String path = Environment.getExternalStorageDirectory() + mExternalStoragePath + "/" + p.getFileName();
                 int degree = p.getDegree();
-                ImageFragment.newInstance(path, degree).show(fm, DIALOG_IMAGE);
+                ImageFragment.newInstance(path, degree, screenOrientation).show(fm, DIALOG_IMAGE);
             }
         });
         return v;
@@ -176,7 +188,7 @@ public class CrimeFragment extends Fragment {
             String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + photo.getFileName();
             degree = photo.getDegree();
 
-            Log.e(TAG, "showPhoto " + path);
+            Log.e(TAG, "showPhoto " + path + " rotate " + degree);
             bitmapDrawable = PictureUtils.getScaledDrawable(getActivity(), path);
         }
         mPhotoView.setImageDrawable(bitmapDrawable);

@@ -2,6 +2,8 @@ package myproject.ycc.criminalintent;
 
 
 import android.app.Fragment;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -21,10 +23,11 @@ import myproject.ycc.criminalintent.javabean.PictureUtils;
  */
 public class ImageFragment extends DialogFragment {
 
+    private static final String TAG = "ImageFragment";
 
     private static final String EXTRA_IMAGE_PATH = "ycc.criminalintent.image_path";
     private static final String EXTRA_IMAGE_DEGREE = "ycc.criminalintent.image_degree";
-    private static final String TAG = "ImageFragment";
+    private static final String EXTRA_IMAGE_SCREEN = "ycc.criminalintent.image_screen";
     private ImageView mImageView;
     private String path;
     private int photoDegree;
@@ -34,10 +37,11 @@ public class ImageFragment extends DialogFragment {
         // Required empty public constructor
     }
 
-    public static ImageFragment newInstance(String imagePath, int rotateDegree) {
+    public static ImageFragment newInstance(String imagePath, int rotateDegree, int screenOrientation) {
         Bundle args = new Bundle();
         args.putSerializable(EXTRA_IMAGE_PATH, imagePath);
         args.putSerializable(EXTRA_IMAGE_DEGREE, rotateDegree);
+        args.putSerializable(EXTRA_IMAGE_SCREEN, screenOrientation);
 
         ImageFragment fragment = new ImageFragment();
         fragment.setArguments(args);
@@ -45,31 +49,28 @@ public class ImageFragment extends DialogFragment {
 
         return fragment;
     }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         mImageView = new ImageView(getActivity());
         path = (String) getArguments().getSerializable(EXTRA_IMAGE_PATH);
-        photoDegree = getArguments().getShort(EXTRA_IMAGE_DEGREE);
-        OrientationEventListener mListener = new OrientationEventListener(getActivity()) {
-            @Override
-            public void onOrientationChanged(int o) {
-                if ((o>= 350 || o <= 10) || (o>= 170 && o<= 190)) {
-                    //竖屏
-                    screenOrientation = 1;
-                    Log.e(TAG, "screenOrientation " + screenOrientation);
+        photoDegree = getArguments().getInt(EXTRA_IMAGE_DEGREE);
+        screenOrientation = getArguments().getInt(EXTRA_IMAGE_SCREEN);
+        Log.e(TAG, "screenOrientation = " + screenOrientation);
 
-
-                } else if ((o >= 80 && o <= 100) || (o >= 260 && o <= 280)) {
-                    //横屏
-                    screenOrientation = 2;
-                    Log.e(TAG, "screenOrientation " + screenOrientation);
-                    }
-            }
-        };
-        mListener.enable();
         BitmapDrawable image = PictureUtils.getMatchScaledDrawable(getActivity(), path, photoDegree, screenOrientation);
         mImageView.setImageDrawable(image);
+        mImageView.setRotation(photoDegree);
+        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        mImageView.setBackgroundColor(Color.TRANSPARENT);
 
         mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
