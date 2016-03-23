@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -19,13 +18,13 @@ import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -72,7 +71,24 @@ public class CrimeFragment extends Fragment {
     private String mExternalStoragePath = "/criminal_intent_camera";
     private int screenOrientation;
     private Button mSuspectButton;
+    private Button mDialButton;
+    private Callbacks mCallbacks;
 
+    public interface Callbacks {
+        void onCrimeUpdated(Crime crime);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks= (Callbacks) activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -89,6 +105,25 @@ public class CrimeFragment extends Fragment {
         mCrimeId = (UUID)getArguments().getSerializable(EXTRA_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(mCrimeId);
         setHasOptionsMenu(true);
+        //getPixelDisplayMetricsII();
+    }
+
+    private void getPixelDisplayMetricsII() {
+        DisplayMetrics dm = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
+
+        int screenWidth = dm.widthPixels;
+        int screenHeight = dm.heightPixels;
+
+        float density = dm.density;
+        int densityDpi = dm.densityDpi;
+
+        float xdpi = dm.xdpi;
+        float ydpi = dm.ydpi;
+
+        Log.e(TAG ,"宽:" + screenWidth + ", 高:"+screenHeight);
+        Log.e(TAG, "密度 density:" + density + ",densityDpi:" + densityDpi);
+        Log.e(TAG, "精确密度 xdpi:" + xdpi + ", ydpi:" + ydpi);
     }
 
     @Override
@@ -111,6 +146,8 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
+                mCallbacks.onCrimeUpdated(mCrime);
+                getActivity().setTitle(mCrime.getTitle());
             }
 
             @Override
@@ -139,6 +176,7 @@ public class CrimeFragment extends Fragment {
             //            @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mCrime.setSolved(isChecked);
+                mCallbacks.onCrimeUpdated(mCrime);
             }
         });
         mPhotoButton = (ImageButton) v.findViewById(R.id.crime_imageButton);
@@ -202,6 +240,15 @@ public class CrimeFragment extends Fragment {
                 Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
                 startActivityForResult(i, REQUEST_CONTACT);
 
+            }
+        });
+        mDialButton = (Button) v.findViewById(R.id.crime_dialButton);
+        mDialButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri number = Uri.parse("tel:10086");
+                Intent i = new Intent(Intent.ACTION_DIAL, number);
+                startActivity(i);
             }
         });
         return v;
@@ -296,6 +343,7 @@ public class CrimeFragment extends Fragment {
             Date date = (Date) data.getSerializableExtra(ChoosePickerFragment.EXTRA_DATE_TIME);
             mCrime.setDate(date);
             updateDate();
+            mCallbacks.onCrimeUpdated(mCrime);
         } else if (requestCode == REQUEST_PHOTO) {
             //收到了CrimeCameraFragment返回的消息
             String fileName = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
@@ -306,11 +354,12 @@ public class CrimeFragment extends Fragment {
                 mCrime.setPhoto(photo);
                 Log.e(TAG, "get degree" + mCrime.getPhoto().getDegree());
                 showPhoto();
+                mCallbacks.onCrimeUpdated(mCrime);
             }
         } else if (requestCode == REQUEST_CONTACT) {
             Uri contactUri = data.getData();
 
-            String[] queryFields = new String[] {ContactsContract.Contacts.DISPLAY_NAME};
+            String[] queryFields = new String[] {ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts.HAS_PHONE_NUMBER};
 
             Cursor c = getActivity().getContentResolver().query(contactUri, queryFields, null, null, null);
 
@@ -319,9 +368,11 @@ public class CrimeFragment extends Fragment {
                 return;
             }
             c.moveToFirst();
+            Log.e(TAG, c.getString(0) + "  " + c.getString(1));
             String suspect = c.getString(0);
             mCrime.setSuspect(suspect);
             mSuspectButton.setText(suspect);
+            mCallbacks.onCrimeUpdated(mCrime);
             c.close();
         }
     }

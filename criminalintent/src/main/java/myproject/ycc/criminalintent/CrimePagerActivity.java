@@ -14,7 +14,7 @@ import myproject.ycc.criminalintent.javabean.Crime;
 import myproject.ycc.criminalintent.javabean.CrimeLab;
 
 
-public class CrimePagerActivity extends FragmentActivity {
+public class CrimePagerActivity extends FragmentActivity implements CrimeFragment.Callbacks {
     private ViewPager mViewPager;
     private ArrayList<Crime> mCrimes;
     @Override
@@ -69,5 +69,10 @@ public class CrimePagerActivity extends FragmentActivity {
                 break;
             }
         }
+    }
+
+    @Override
+    public void onCrimeUpdated(Crime crime) {
+
     }
 }
