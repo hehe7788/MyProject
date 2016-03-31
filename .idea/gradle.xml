@@ -12,6 +12,8 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/criminalintent" />
+            <option value="$PROJECT_DIR$/nerdlauncher" />
+            <option value="$PROJECT_DIR$/photogallery" />
           </set>
         </option>
       </GradleProjectSettings>

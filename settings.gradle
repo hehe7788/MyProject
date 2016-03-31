@@ -1,1 +1,1 @@
-include ':app', ':criminalintent'
+include ':app', ':criminalintent', ':nerdlauncher', ':photogallery'
